@@ -1,0 +1,64 @@
+{
+  "name": "balloon-pop-maths-desktop",
+  "version": "1.0.0",
+  "description": "Aplikasi desktop Balloon Pop Maths untuk belajar matematika SD",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build-win": "electron-builder --win",
+    "build-mac": "electron-builder --mac",
+    "build-linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "matematika",
+    "pendidikan",
+    "game",
+    "electron",
+    "desktop"
+  ],
+  "author": "Kelompok 14 - Universitas Muhammadiyah Metro",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^32.3.3",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.ummetro.balloonpopmath",
+    "productName": "Balloon Pop Maths",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/images/balloon-favicon.ico"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Education"
+    },
+    "files": [
+      "index.html",
+      "404.html",
+      "electron-main.js",
+      "preload.js",
+      "assets/**/*",
+      "!assets/testing/**/*",
+      "!assets/wireframes/**/*",
+      "!server.py",
+      "!.replit",
+      "!replit.nix"
+    ]
+  }
+}

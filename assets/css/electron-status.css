@@ -1,0 +1,64 @@
+.electron-status {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    font-family: 'Nunito', sans-serif;
+}
+
+.electron-status.online {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.electron-status.offline {
+    background-color: #f44336;
+    color: white;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.electron-status i {
+    margin-right: 5px;
+}
+
+.electron-app-info {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 5px;
+    font-size: 11px;
+    z-index: 9999;
+    font-family: 'Nunito', sans-serif;
+}
+
+@media screen and (max-width: 768px) {
+    .electron-status {
+        top: 5px;
+        right: 5px;
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .electron-app-info {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+}
