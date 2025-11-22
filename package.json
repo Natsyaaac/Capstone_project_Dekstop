@@ -4,8 +4,9 @@
   "description": "Aplikasi desktop Balloon Pop Maths untuk belajar matematika SD",
   "main": "electron-main.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "electron . --dev",
+    "start": "node server.js",
+    "dev": "node server.js",
+    "electron": "electron .",
     "build-win": "electron-builder --win",
     "build-mac": "electron-builder --mac",
     "build-linux": "electron-builder --linux"
@@ -19,6 +20,9 @@
   ],
   "author": "Kelompok 14 - Universitas Muhammadiyah Metro",
   "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
   "devDependencies": {
     "electron": "^32.3.3",
     "electron-builder": "^25.1.8"
@@ -31,9 +35,23 @@
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "assets/images/balloon-favicon.ico"
+      "icon": "assets/images/balloon-favicon.ico",
+      "publisherName": "Universitas Muhammadiyah Metro",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Balloon Pop Maths"
     },
     "mac": {
       "target": [
