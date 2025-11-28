@@ -1,91 +1,108 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
-const dns = require('dns');
 
 let mainWindow;
-let isOnline = false;
-
-function checkInternetConnection() {
-  dns.resolve('www.google.com', (err) => {
-    const previousStatus = isOnline;
-    isOnline = !err;
-    
-    if (previousStatus !== isOnline) {
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('connection-status-changed', isOnline);
-      }
-      
-      if (!isOnline) {
-        showOfflineDialog();
-      }
-    }
-  });
-}
-
-function showOfflineDialog() {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    dialog.showMessageBox(mainWindow, {
-      title: 'Tidak Ada Koneksi Internet',
-      message: 'Aplikasi ini membutuhkan koneksi internet untuk beberapa fitur (seperti mengirim email ke pengembang).',
-      detail: 'Silakan periksa koneksi internet Anda dan coba lagi.',
-      type: 'warning',
-      buttons: ['OK']
-    });
-  }
-}
+let isOnline = true;              // Status koneksi
+let hasShownOfflineDialog = false; // Agar popup tidak muncul berkali-kali
+let isCurrentlyShowing404 = false; // Agar tidak terus load file 404
 
 function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
-    icon: path.join(__dirname, 'assets/images/balloon-favicon.ico'),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
-      webSecurity: true
-    },
-    backgroundColor: '#7CC0FF',
-    show: false,
-    autoHideMenuBar: true
-  });
+    mainWindow = new BrowserWindow({
+        width: 1140,
+        height: 700,
+        minWidth: 1140,
+        minHeight: 768,
+        center: true,
+        autoHideMenuBar: true,
+        icon: path.join(__dirname, 'assets/images/icon.png'),
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false
+        }
+    });
 
-  mainWindow.loadFile('index.html');
+    // Load halaman utama
+    mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-  });
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-
-  checkInternetConnection();
-  setInterval(checkInternetConnection, 10000);
+    // Cek koneksi pertama kali
+    checkInternetConnection();
 }
 
+function checkInternetConnection() {
+    require('dns').resolve('www.google.com', (err) => {
+        
+        // ---------------------- ONLINE ----------------------
+        if (!err) {  
+            if (!isOnline) {
+                console.log('Internet Back Online!');
+            }
+
+            isOnline = true;
+            hasShownOfflineDialog = false;  // Reset supaya popup bisa muncul lagi jika offline nanti
+
+            // Jika sedang menampilkan 404, kembalikan ke halaman utama
+            if (isCurrentlyShowing404) {
+                isCurrentlyShowing404 = false;
+                mainWindow.loadFile(path.join(__dirname, 'index.html'));
+            }
+
+            return;
+        }
+
+        // ---------------------- OFFLINE ----------------------
+        if (isOnline) {
+            console.log('Internet Offline!');
+        }
+
+        isOnline = false;
+
+        // Tampilkan halaman offline hanya sekali
+        if (!isCurrentlyShowing404) {
+            isCurrentlyShowing404 = true;
+            mainWindow.loadFile(path.join(__dirname, '404.html'));
+        }
+
+        // Tampilkan popup hanya sekali
+        if (!hasShownOfflineDialog) {
+            hasShownOfflineDialog = true;
+            showOfflineDialog();
+        }
+    });
+}
+
+// Jalankan pengecekan setiap 10 detik
+setInterval(checkInternetConnection, 10000);
+
+// Dialog offline
+function showOfflineDialog() {
+    dialog.showMessageBox(mainWindow, {
+        type: 'warning',
+        title: 'Koneksi Terputus',
+        message: 'Koneksi internet Anda terputus. Beberapa fitur mungkin tidak dapat digunakan.',
+        buttons: ['OK']
+    });
+}
+
+// Buka link eksternal ke browser default
+ipcMain.on('open-external-link', (event, url) => {
+    shell.openExternal(url);
+});
+
+// Aplikasi ready
 app.whenReady().then(() => {
-  createWindow();
+    createWindow();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
 });
 
+// Quit ketika semua window tertutup
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-ipcMain.handle('check-online-status', () => {
-  return isOnline;
-});
-
-ipcMain.on('manual-connection-check', () => {
-  checkInternetConnection();
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
 });
